@@ -1,0 +1,23 @@
+import torch.nn as nn
+
+class CRNNModel(nn.Module):
+    def __init__(self, num_classes=37):  # Set num_classes according to your charset
+        super(CRNNModel, self).__init__()
+        self.cnn = nn.Sequential(
+            nn.Conv2d(1, 64, 3, 1, 1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2)
+        )
+        self.rnn = nn.LSTM(64 * 16, 128, bidirectional=True, num_layers=2)
+        self.fc = nn.Linear(128 * 2, num_classes)
+
+    def forward(self, x):
+        x = self.cnn(x)
+        b, c, h, w = x.size()
+        assert h == 16, "Expected feature map height=16 after conv layers (adjust if needed)"
+        x = x.permute(3, 0, 2, 1)  # (w, b, h, c)
+        x = x.view(w, b, -1)
+        x, _ = self.rnn(x)
+        x = self.fc(x)
+        return x
