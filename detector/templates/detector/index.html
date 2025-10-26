@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Indic Text Detector</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      /* Custom animation for result box */
+      .fade-in {
+        animation: fadeIn 1s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px);}
+        to { opacity: 1; transform: translateY(0);}
+      }
+    </style>
+</head>
+<body class="bg-gradient-to-tr from-blue-100 to-purple-200 min-h-screen flex flex-col items-center justify-center p-4">
+
+  <div class="w-full max-w-lg mx-auto bg-white shadow-xl rounded-xl p-8">
+    <h1 class="text-3xl font-bold text-center mb-5 text-indigo-600">Indic Text Detector 🖼️🔎</h1>
+    <form method="POST" enctype="multipart/form-data" action="{% url 'detect_text' %}" class="space-y-4">
+      {% csrf_token %}
+      <label class="block text-sm font-medium text-gray-700 mb-2" for="image">Select an Image</label>
+      <input type="file" name="image" id="image" accept="image/*" required
+           class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-indigo-50 file:text-indigo-700
+                  hover:file:bg-indigo-100 cursor-pointer" />
+      <button type="submit"
+           class="w-full py-2 px-4 bg-indigo-500 hover:bg-indigo-600 text-lg text-white font-bold rounded-lg shadow flex items-center justify-center transition-all duration-300 ease-in-out">
+        <span>Analyze &rarr;</span>
+      </button>
+    </form>
+  </div>
+
+  {% if output_image_url %}
+  <div class="w-full max-w-lg mx-auto p-8 mt-6 bg-white rounded-xl shadow-lg fade-in">
+      <h2 class="text-xl font-semibold mb-4 text-indigo-700">Result:</h2>
+      <div class="flex flex-col md:flex-row gap-6">
+          <img src="{{ output_image_url }}" alt="Processed Image with Detected Text" class="w-full md:w-1/2 rounded border border-indigo-200 shadow-md object-contain" />
+          
+          <div class="w-full md:w-1/2">
+              <span class="font-bold text-gray-700">Extracted Text:</span>
+              <div class="bg-gray-50 rounded-lg p-3 mt-2 text-gray-800 text-sm max-h-48 overflow-y-auto border">
+                  {% if recognized_texts %}
+                      <ul>
+                          {% for item in recognized_texts %}
+                              {% if item.text|striptags %}
+                                  <li class="py-1 border-b border-gray-200">{{ item.text }}</li>
+                              {% endif %}
+                          {% endfor %}
+                      </ul>
+                  {% else %}
+                      <p class="text-gray-500">(No text detected)</p>
+                  {% endif %}
+              </div>
+
+              <div class="mt-4">
+                  <span class="font-bold text-gray-700">Predicted Language:</span>
+                  <span class="bg-indigo-100 text-indigo-800 text-sm font-medium ml-2 px-2.5 py-0.5 rounded-full capitalize">
+                      {{ detected_language|default:"unknown" }}
+                  </span>
+              </div>
+
+          </div>
+      </div>
+  </div>
+  {% endif %}
+
+  <footer class="mt-8 text-center text-gray-600">
+    <span>Made with <span class="text-pink-400">&hearts;</span> | Developed by Kumar Shivam</span>
+  </footer>
+
+</body>
+</html>
